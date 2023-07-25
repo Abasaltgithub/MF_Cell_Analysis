@@ -1,6 +1,3 @@
-
-# I meausred the MF of the old coil at HH confuigfuration ruuning at I=0.11A (1.2V) using sesnor LIS3MDL
-
 import matplotlib.pyplot as plt
 
 # Measurement values
