@@ -1,6 +1,8 @@
 
 # I meausred the MF of the old coil at HH confuigfuration ruuning at I=0.11A (1.2V) using sesnor LIS3MDL
 
+
+import numpy as np
 import matplotlib.pyplot as plt
 
 # Measurement values
@@ -27,7 +29,7 @@ By_values = [measurement[1] for measurement in reduced_measurements]
 Bz_values = [measurement[2] for measurement in reduced_measurements]
 
 # Corresponding coordinates in mm
-r = (-56.4, -38, -19, 0, 19, 38, 56.4)
+r = np.array([-56.4, -38, -19, 0, 19, 38, 56.4])
 
 # Plot the adjusted Bx, By, Bz values with scatter plots and connecting lines
 plt.figure(figsize=(10, 6))
@@ -43,7 +45,7 @@ plt.axvspan(-35 / 2, 35 / 2, facecolor='pink', alpha=0.3)
 
 plt.xlabel('Position [mm]')
 plt.ylabel('Bi [µT]')
-plt.title('Bi after Offset Reduction (Bx0=-65, By0=41, Bz0=22) µT')
+plt.title('Bi after offset reduction (Bx0=-65, By0=41, Bz0=22) µT')
 plt.legend()
 plt.grid(True)
 plt.show()
