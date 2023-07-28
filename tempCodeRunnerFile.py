@@ -1,3 +1,4 @@
+import numpy as np
 import matplotlib.pyplot as plt
 
 # Measurement values
@@ -24,7 +25,11 @@ By_values = [measurement[1] for measurement in reduced_measurements]
 Bz_values = [measurement[2] for measurement in reduced_measurements]
 
 # Corresponding coordinates in mm
-r = (-56.4, -38, -19, 0, 19, 38, 56.4)
+r = np.array([-56.4, -38, -19, 0, 19, 38, 56.4])
+
+# Fit a 2nd-degree polynomial to Bz_values (quadratic fit)
+fit_coeffs = np.polyfit(r, Bz_values, deg=2)
+fit_function = np.poly1d(fit_coeffs)
 
 # Plot the adjusted Bx, By, Bz values with scatter plots and connecting lines
 plt.figure(figsize=(10, 6))
@@ -35,12 +40,25 @@ plt.plot(r, By_values, color='green', linestyle='--')
 plt.scatter(r, Bz_values, label='Bz', color='blue')
 plt.plot(r, Bz_values, color='blue', linestyle='--')
 
+# Plot the fitted function as a scatter plot
+plt.scatter(r, fit_function(r), label='Bz Fit', color='purple', marker='x')
+
+# Plot the fit function as a smooth curve
+# Generate more points for smoother curve
+r_fit = np.linspace(np.min(r), np.max(r), 100)
+plt.plot(r_fit, fit_function(r_fit), color='purple',
+         linestyle='-', label='Bz Fit ')
+
 # Add the pink rectangle
 plt.axvspan(-35 / 2, 35 / 2, facecolor='pink', alpha=0.3)
 
+# Print the fit function as a text annotation inside the plot
+equation_text = f'$Bz = {fit_coeffs[0]:.2f}r^2 + {fit_coeffs[1]:.2f}r + {fit_coeffs[2]:.2f}$'
+plt.text(-40, -180, equation_text, fontsize=12, color='purple')
+
 plt.xlabel('Position [mm]')
 plt.ylabel('Bi [µT]')
-plt.title('Bi after Offset Reduction (Bx0=-65, By0=41, Bz0=22) µT')
+plt.title('Bi after offset reduction (Bx0=-65, By0=41, Bz0=22) µT')
 plt.legend()
 plt.grid(True)
 plt.show()
