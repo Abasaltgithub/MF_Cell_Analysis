@@ -1,3 +1,4 @@
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -31,34 +32,47 @@ r = np.array([-56.4, -38, -19, 0, 19, 38, 56.4])
 fit_coeffs = np.polyfit(r, Bz_values, deg=2)
 fit_function = np.poly1d(fit_coeffs)
 
-# Plot the adjusted Bx, By, Bz values with scatter plots and connecting lines
-plt.figure(figsize=(10, 6))
-plt.scatter(r, Bx_values, label='Bx', color='red')
-plt.plot(r, Bx_values, color='red', linestyle='--')
-plt.scatter(r, By_values, label='By', color='green')
-plt.plot(r, By_values, color='green', linestyle='--')
-plt.scatter(r, Bz_values, label='Bz', color='blue')
-plt.plot(r, Bz_values, color='blue', linestyle='--')
-
-# Plot the fitted function as a scatter plot
-plt.scatter(r, fit_function(r), label='Bz Fit', color='purple', marker='x')
-
-# Plot the fit function as a smooth curve
 # Generate more points for smoother curve
 r_fit = np.linspace(np.min(r), np.max(r), 100)
-plt.plot(r_fit, fit_function(r_fit), color='purple',
-         linestyle='-', label='Bz Fit ')
+fit_values = fit_function(r_fit)
 
-# Add the pink rectangle
-plt.axvspan(-35 / 2, 35 / 2, facecolor='pink', alpha=0.3)
+# Create the subplots, one for Bx, By, and Bz, and another for Bz with the quadratic fit
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
 
-# Print the fit function as a text annotation inside the plot
+# Left plot: Bx, By, and Bz
+ax1.scatter(r, Bx_values, label='Bx', color='red')
+ax1.plot(r, Bx_values, color='red', linestyle='--')
+ax1.scatter(r, By_values, label='By', color='green')
+ax1.plot(r, By_values, color='green', linestyle='--')
+ax1.scatter(r, Bz_values, label='Bz', color='blue')
+ax1.plot(r, Bz_values, color='blue', linestyle='--')
+ax1.set_xlabel('Position [mm]')
+ax1.set_ylabel('B [µT]')
+ax1.set_title(
+    'Bx, By, and Bz after offset reduction (Bx0=-65, By0=41, Bz0=22) µT')
+ax1.legend()
+ax1.grid(True)
+
+# Right plot: Bz with the fitted quadratic curve
+ax2.scatter(r, Bz_values, label='Bz', color='blue')
+ax2.plot(r_fit, fit_values, color='purple',
+         linestyle='-', label='Bz Fit (Quadratic)')
+ax2.axvspan(-35 / 2, 35 / 2, facecolor='pink', alpha=0.3)
+ax2.set_xlabel('Position [mm]')
+ax2.set_ylabel('Bz [µT]')
+ax2.set_title('Bz with fitted quadratic curve (Bz0=22) µT')
+
+# Print the fit function as a text annotation inside the right plot
 equation_text = f'$Bz = {fit_coeffs[0]:.2f}r^2 + {fit_coeffs[1]:.2f}r + {fit_coeffs[2]:.2f}$'
-plt.text(-40, -180, equation_text, fontsize=12, color='purple')
+ax2.text(-40, -180, equation_text, fontsize=12, color='purple')
 
-plt.xlabel('Position [mm]')
-plt.ylabel('Bi [µT]')
-plt.title('Bi after offset reduction (Bx0=-65, By0=41, Bz0=22) µT')
-plt.legend()
-plt.grid(True)
+ax2.legend()
+ax2.grid(True)
+
+plt.tight_layout()
+
+# Save the figure to a file (e.g., "output_plot.png")
+plt.savefig("output_plot.png")
+
+# Show the plot on the screen
 plt.show()

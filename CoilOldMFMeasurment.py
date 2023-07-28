@@ -47,13 +47,14 @@ ax1.scatter(r, Bx_values, label='Bx', color='red')
 ax1.plot(r, Bx_values, color='red', linestyle='--')
 ax1.scatter(r, By_values, label='By', color='green')
 ax1.plot(r, By_values, color='green', linestyle='--')
-ax1.scatter(r, Bz_values, label='Bz', color='blue')
-ax1.plot(r, Bz_values, color='blue', linestyle='--')
+# ax1.scatter(r, Bz_values, label='Bz', color='blue')
+# ax1.plot(r, Bz_values, color='blue', linestyle='--')
 ax1.set_xlabel('Position [mm]')
 ax1.set_ylabel('B [µT]')
 ax1.set_title(
-    'Bx, By, and Bz after offset reduction (Bx0=-65, By0=41, Bz0=22) µT')
+    'Bx and By after offset reduction (Bx0=-65, By0=41, Bz0=22) µT')
 ax1.legend()
+ax1.axvspan(-35 / 2, 35 / 2, facecolor='pink', alpha=0.3)
 ax1.grid(True)
 
 # Right plot: Bz with the fitted quadratic curve
