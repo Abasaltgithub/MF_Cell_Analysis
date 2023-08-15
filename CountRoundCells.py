@@ -1,65 +1,50 @@
 import cv2
 import numpy as np
+import os
 
-# Path to the specific image
-image_path = "/Users/abasaltbahrami/My Drive/InCor - Brazil/TestConflu/1.png"
+# Path to the directory containing the images
+images_directory = "/Users/abasaltbahrami/My Drive/InCor - Brazil/TestConflu/"
 
-# Parameters
-brightness_threshold = 150
-min_radius = 10
-max_radius = 50
+# Get a list of all image files in the directory
+image_files = [file for file in os.listdir(
+    images_directory) if file.lower().endswith(('.png', '.jpg', '.jpeg'))]
 
-
-def count_bright_round_cells(image):
-    # Convert to grayscale
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+for image_file in image_files:
+    # Load the image
+    image_path = os.path.join(images_directory, image_file)
+    image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
 
     # Apply Gaussian blur to reduce noise
-    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+    blurred = cv2.GaussianBlur(image, (9, 9), 2)
 
-    # Apply adaptive thresholding to segment bright areas
-    _, thresholded = cv2.threshold(
-        blurred, brightness_threshold, 255, cv2.THRESH_BINARY)
+    # Detect circles using Hough Circle Transform
+    circles = cv2.HoughCircles(
+        blurred, cv2.HOUGH_GRADIENT, dp=1, minDist=10, param1=20, param2=15, minRadius=5, maxRadius=15
+    )
 
-    # Find contours in the thresholded image
-    contours, _ = cv2.findContours(
-        thresholded, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # Convert circles to integers
+    circles = np.uint16(np.around(circles))
 
-    # Initialize the count of bright round cells
-    bright_round_cell_count = 0
+    # Create a copy of the original image to draw contours on
+    image_with_contours = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
 
-    # Iterate through the contours
-    for contour in contours:
-        # Approximate the contour as a circle
-        area = cv2.contourArea(contour)
-        perimeter = cv2.arcLength(contour, True)
+    # Draw contours and count circles
+    if circles is not None:
+        num_circles = len(circles[0])
+        for circle in circles[0, :]:
+            center = (circle[0], circle[1])
+            radius = circle[2]
 
-        if perimeter == 0:
-            continue
+            # Draw the circle's contour
+            cv2.circle(image_with_contours, center, radius, (0, 255, 0), 2)
 
-        circularity = (4 * np.pi * area) / (perimeter * perimeter)
+        print(f"Number of circles detected in {image_file}: {num_circles}")
+    else:
+        print(f"No circles detected in {image_file}.")
 
-        # Check circularity and size of the contour
-        if min_radius**2 * np.pi <= area <= max_radius**2 * np.pi and circularity > 0.7:
-            bright_round_cell_count += 1
+    # Display the image with contours
+    cv2.imshow(f"Image with Contours - {image_file}", image_with_contours)
+    cv2.waitKey(0)
 
-    # Draw contours on the original image
-    image_with_contours = image.copy()
-    cv2.drawContours(image_with_contours, contours, -1, (0, 255, 0), 2)
-
-    return bright_round_cell_count, image_with_contours
-
-
-# Load the image
-image = cv2.imread(image_path, cv2.IMREAD_COLOR)
-
-# Count cells and get contours
-count, image_with_contours = count_bright_round_cells(image)
-
-# Display images
-cv2.imshow("Image with Contours", image_with_contours)
-print(f"Image: 1.png, Number of bright round cells: {count}")
-
-# Wait for a key press and then close the window
-cv2.waitKey(0)
+# Close all windows when done
 cv2.destroyAllWindows()
