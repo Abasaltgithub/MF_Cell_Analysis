@@ -22,6 +22,9 @@ x_indices = list('ABCDEFGH')
 # Create a figure with two subplots (dual-axis plot)
 fig, ax1 = plt.subplots(figsize=(10, 6))
 
+# Add title with provided V and I values
+plt.title('V=0.5V, I=0.19A')
+
 # Create the line plot on the first axis (ax1) on the left for row 6
 ax1.plot(x_indices, data_row6, marker='o', color='green',
          linestyle='-', label='MF row 6 (center row)')
