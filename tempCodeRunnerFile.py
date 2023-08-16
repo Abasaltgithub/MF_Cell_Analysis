@@ -1,111 +1,44 @@
-import cv2
-import numpy as np
-import os
-import tkinter as tk
-from tkinter import filedialog
-from PIL import Image, ImageTk
+import pandas as pd
+import matplotlib.pyplot as plt
 
+# Replace 'MF_96well.csv' with the actual filename of the exported CSV
+csv_file_path = '/Users/abasaltbahrami/My Drive/Company/My research/MF_96well.csv'
 
-def detect_circles(image_path, dp, minDist, param1, param2, minRadius, maxRadius):
-    image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-    image_height, image_width = image.shape
-    blurred = cv2.GaussianBlur(image, (9, 9), 2)
-    circles = cv2.HoughCircles(
-        blurred, cv2.HOUGH_GRADIENT, dp=dp, minDist=minDist, param1=param1, param2=param2, minRadius=minRadius, maxRadius=maxRadius
-    )
+# Read the CSV file
+df = pd.read_csv(csv_file_path)
 
-    total_image_area = image_height * image_width
-    if circles is not None:
-        circles = np.uint16(np.around(circles))
-        total_contour_area = 0
-        for circle in circles[0, :]:
-            center = (circle[0], circle[1])
-            radius = circle[2]
-            cv2.circle(image, center, radius, (0, 255, 0), 2)
-            circle_area = np.pi * radius ** 2
-            total_contour_area += circle_area
+# Set the desired height for the bar plots
+desired_height = 300  # Set the desired height to 300
 
-        percentage_covered = (total_contour_area / total_image_area) * 100
-        result_label.config(
-            text=f"Confidence for {os.path.basename(image_path)}: {percentage_covered:.2f}%")
-    else:
-        result_label.config(
-            text=f"No circles detected in {os.path.basename(image_path)}.")
+# Generate X indices for the plot
+x_indices = list('ABCDEFGH')
 
-    # Display the processed image in the Tkinter app
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    img = Image.fromarray(image)
-    img = ImageTk.PhotoImage(img)
-    image_label.config(image=img)
-    image_label.image = img
+# Create a figure with two subplots (dual-axis plot)
+fig, ax1 = plt.subplots(figsize=(10, 6))
 
+# Create a second axis (ax2) for the bar plots on the right
+ax2 = ax1.twinx()
 
-def browse_image():
-    global image_filename
-    image_filename = filedialog.askopenfilename()
-    image_path_label.config(text="Image: " + os.path.basename(image_filename))
+# Determine the number of rows to plot (minimum of available rows and 12)
+num_rows_to_plot = min(12, df.shape[0])
 
+# Create the bar plots on the second axis (ax2) with the desired height and gray edge color
+for _ in range(num_rows_to_plot):
+    bars = ax2.bar(x_indices, [desired_height] * len(x_indices),
+                   color='none', edgecolor='lightgray', hatch='', alpha=0.6)  # Set hatch pattern
 
-def detect_button_callback():
-    dp = float(dp_entry.get())
-    minDist = float(minDist_entry.get())
-    param1 = float(param1_entry.get())
-    param2 = float(param2_entry.get())
-    minRadius = int(minRadius_entry.get())
-    maxRadius = int(maxRadius_entry.get())
+# Plot the available rows using line plots on top of the bar plots
+for row_index in range(num_rows_to_plot):
+    data_row = df.iloc[row_index, 0:8].values
+    ax1.plot(x_indices, data_row, marker='o', label=f'Row {row_index + 1}')
 
-    detect_circles(image_filename, dp, minDist, param1,
-                   param2, minRadius, maxRadius)
+# Set labels and title
+ax1.set_xlabel('Columns')
+ax1.set_ylabel('Magnetic field (µT)')
+ax2.yaxis.set_visible(False)
 
+# Move the legend outside the plot and adjust its position
+ax1.legend(loc='upper left', bbox_to_anchor=(1, 1))
 
-app = tk.Tk()
-app.title("Circle Detection App")
-
-browse_button = tk.Button(app, text="Browse Image", command=browse_image)
-browse_button.pack()
-
-image_path_label = tk.Label(app, text="Image:")
-image_path_label.pack()
-
-dp_label = tk.Label(app, text="dp:")
-dp_label.pack()
-dp_entry = tk.Entry(app)
-dp_entry.pack()
-
-minDist_label = tk.Label(app, text="minDist:")
-minDist_label.pack()
-minDist_entry = tk.Entry(app)
-minDist_entry.pack()
-
-param1_label = tk.Label(app, text="param1:")
-param1_label.pack()
-param1_entry = tk.Entry(app)
-param1_entry.pack()
-
-param2_label = tk.Label(app, text="param2:")
-param2_label.pack()
-param2_entry = tk.Entry(app)
-param2_entry.pack()
-
-minRadius_label = tk.Label(app, text="minRadius:")
-minRadius_label.pack()
-minRadius_entry = tk.Entry(app)
-minRadius_entry.pack()
-
-maxRadius_label = tk.Label(app, text="maxRadius:")
-maxRadius_label.pack()
-maxRadius_entry = tk.Entry(app)
-maxRadius_entry.pack()
-
-detect_button = tk.Button(app, text="Detect Circles",
-                          command=detect_button_callback)
-detect_button.pack()
-
-result_label = tk.Label(app, text="")
-result_label.pack()
-
-# Label to display the processed image
-image_label = tk.Label(app)
-image_label.pack()
-
-app.mainloop()
+# Display the plot
+plt.show()
