@@ -9,17 +9,19 @@ red_file_path = '/Users/abasaltbahrami/My Drive/Company/My research/PlateReader_
 blue_data = pd.read_excel(blue_file_path)
 red_data = pd.read_excel(red_file_path)
 
-# Create the initial plot in blue
+# Calculate the row-wise averages
+blue_data['Average'] = blue_data.iloc[:, 1:].mean(axis=1)
+red_data['Average'] = red_data.iloc[:, 1:].mean(axis=1)
+
+# Create the initial plot with blue average
 ax = blue_data.plot(
-    kind='line', x=blue_data.columns[0], y=blue_data.columns[1:], figsize=(10, 6), color='blue')
+    x=blue_data.columns[0], y='Average', figsize=(10, 6), color='blue')
 
-# Add lines from the red file in red
-red_data.plot(
-    kind='line', x=red_data.columns[0], y=red_data.columns[1:], ax=ax, color='red')
+# Add red average to the plot
+red_data.plot(x=red_data.columns[0], y='Average', ax=ax, color='red')
 
-plt.xlabel('X-axis label')  # Replace with your desired label
-plt.ylabel('Y-axis label')  # Replace with your desired label
-plt.title('Plot of All Columns')  # Replace with your desired title
-# Add legend for each column
-plt.legend(blue_data.columns[1:] + red_data.columns[1:])
+plt.xlabel('96-well')  # Replace with your desired label
+plt.ylabel('a.u.')  # Replace with your desired label
+plt.title('Average Plot of All Columns')  # Replace with your desired title
+plt.legend(['SMF', 'CTR'])
 plt.show()
