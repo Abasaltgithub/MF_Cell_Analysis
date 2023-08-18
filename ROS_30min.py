@@ -9,16 +9,26 @@ red_file_path = '/Users/abasaltbahrami/My Drive/Company/My research/PlateReader_
 blue_data = pd.read_excel(blue_file_path)
 red_data = pd.read_excel(red_file_path)
 
-# Create the initial plot in blue
-ax = blue_data.plot(
-    kind='line', x=blue_data.columns[0], y=blue_data.columns[1:], figsize=(10, 6), color='blue')
+# Calculate the row-wise averages
+blue_data['Average'] = blue_data.iloc[:, 1:].mean(axis=1)
+red_data['Average'] = red_data.iloc[:, 1:].mean(axis=1)
 
-# Add lines from the red file in red without labels
-red_data.plot(kind='line', x=red_data.columns[0],
-              y=red_data.columns[1:], ax=ax, color='red', legend=False)
+# Add the 'Source' column to identify the dataset
+blue_data['Source'] = 0
+red_data['Source'] = 1
 
-plt.xlabel('X-axis label')  # Replace with your desired label
-plt.ylabel('Y-axis label')  # Replace with your desired label
-plt.title('Plot of All Columns')  # Replace with your desired title
-plt.legend().set_visible(False)  # Hide the legend
+# Concatenate the datasets for plotting
+combined_data = pd.concat([blue_data, red_data], ignore_index=True)
+
+# Create the scatter plot with adjusted x-axis positions
+ax = combined_data.plot(x='Source', y='Average', kind='scatter', figsize=(
+    8, 6), color=combined_data['Source'].apply(lambda x: 'red' if x == 0 else 'blue'), marker='o')
+
+# Set the x-axis tick labels
+ax.set_xticks([0, 1])
+ax.set_xticklabels(['SMF 30 min', 'CTR 30 min'])
+
+plt.xlabel('Dataset')  # Replace with your desired label
+plt.ylabel('Average Y-axis label')  # Replace with your desired label
+plt.title('Average Plot of All Data Points')  # Replace with your desired title
 plt.show()
