@@ -14,28 +14,27 @@ B_mT_sim = [0.88, 1.87, 3.41, 4.78, 6.44,
 errors = [0.05 * B for B in B_mT]
 
 # Create a scatter plot
-plt.scatter(current_A, B_mT, c='black', label='Measurement', zorder=2)
-plt.errorbar(current_A, B_mT, yerr=errors, fmt='none',
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4.5))
+
+# First subplot for the magnetic field plot
+ax1.scatter(current_A, B_mT, c='black', label='Measurement', zorder=2)
+ax1.errorbar(current_A, B_mT, yerr=errors, fmt='none',
              c='black', capsize=3, zorder=1)
-plt.plot(current_A, B_mT_sim, c='blue', label='Simulation for R=43mm, N=210')
-plt.xlabel('Current (A)')
-plt.ylabel('Axial Magnetic Field (mT)')
-plt.title('Current vs. magnetic field of the BioCoil')
+ax1.plot(current_A, B_mT_sim, c='blue', label='Simulation for R=43mm, N=210')
+ax1.set_xlabel('Current (A)')
+ax1.set_ylabel('Axial Magnetic Field (mT)')
+ax1.set_title('Current vs. magnetic field of the BioCoil')
 
 # Perform a linear fit using numpy's polyfit function
 m, b = np.polyfit(current_A, B_mT, 1)
-plt.plot(current_A, m*current_A + b, color='red',
+ax1.plot(current_A, m*current_A + b, color='red',
          label='Linear fit to measurement')
-plt.text(0.4, 10, f'B(mT) = {m:.2f} x I (A) + {b:.2f}',
+ax1.text(0.4, 10, f'B(mT) = {m:.2f} x I (A) + {b:.2f}',
          fontsize=10, color='red')
 
-plt.legend()
-plt.savefig(
-    '/Users/abasaltbahrami/Library/CloudStorage/Box-Box/VisualStudio/Random/BioCoils/BioCoils_I_B.png')
-plt.show()
+ax1.legend()
 
-
-# plotting I-V for the BioCoils
+# Second subplot for the I-V plot
 current = [0.262, 0.392, 0.62, 0.807, 1.13, 1.48, 2.08, 2.5, 4.47]
 voltage = [1.57, 2.36, 3.82, 4.96, 6.96, 9.16, 12.93, 15.64, 28.17]
 
@@ -45,19 +44,26 @@ x = np.array(current)
 y = slope * x + intercept
 
 # scatter plot
-plt.scatter(current, voltage, label='Data', c='black')
-plt.plot(x, y, label='Linear Fit', color='r')
+ax2.scatter(current, voltage, label='Measurement', c='black')
+ax2.plot(x, y, label='Linear Fit', color='r')
 
 # add labels and legend
-plt.title('Voltage vs. Current')
-plt.xlabel('Current (A)')
-plt.ylabel('Voltage (V)')
-plt.legend()
+ax2.set_title('Voltage vs. Current')
+ax2.set_xlabel('Current (A)')
+ax2.set_ylabel('Voltage (V)')
+ax2.legend()
 
 # add text box with equation of line
 equation = f'V = {slope:.2f} x I + {intercept:.2f}'
-plt.text(2500/1000, 10, equation, fontsize=12, c='red')
+ax2.text(2.5, 10, equation, fontsize=12, c='red')
 
-plt.savefig(
-    '/Users/abasaltbahrami/Library/CloudStorage/Box-Box/VisualStudio/Random/BioCoils/BioCoils_I_V.png')
+plt.tight_layout()
+
+output_image_path = 'MagneticFieldSimulation.pdf'
+plt.savefig(output_image_path, bbox_inches='tight',
+            dpi=500)  # Save with specified DPI
+
+output_path = '/Users/abasaltbahrami/Downloads/your_figure_name.pdf'
+plt.savefig(output_path, format='pdf')
+
 plt.show()
