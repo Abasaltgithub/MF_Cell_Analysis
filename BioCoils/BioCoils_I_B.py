@@ -63,7 +63,7 @@ output_image_path = 'MagneticFieldSimulation.pdf'
 plt.savefig(output_image_path, bbox_inches='tight',
             dpi=500)  # Save with specified DPI
 
-output_path = '/Users/abasaltbahrami/Downloads/your_figure_name.pdf'
+output_path = '/Users/abasaltbahrami/Downloads/AxialField_measured.pdf'
 plt.savefig(output_path, format='pdf')
 
 plt.show()
