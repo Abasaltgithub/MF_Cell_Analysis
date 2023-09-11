@@ -8,6 +8,10 @@ directory_path = '/Users/abasaltbahrami/Downloads/Cell_2023/CTR/'
 image_files = [f for f in os.listdir(
     directory_path) if "Actin" in f and f.endswith('.tif')]
 
+# Define minimum and maximum contour sizes
+min_contour_size = 30000  # Adjust as needed
+max_contour_size = 1000000  # Adjust as needed
+
 for image_file in image_files:
     # Construct the full path to the image
     image_path = os.path.join(directory_path, image_file)
@@ -25,30 +29,26 @@ for image_file in image_files:
     contours, _ = cv2.findContours(
         binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    # Initialize a variable to store the total area outside
-    total_area_outside = 0
-
-    # Iterate through the contours
     for contour in contours:
-        # Calculate the area of each contour and add it to the total area outside
-        area = cv2.contourArea(contour)
-        total_area_outside += area
+        # Calculate the area of the contour
+        total_area_inside = cv2.contourArea(contour)
 
-    # Calculate the total area inside by subtracting the outside area from the total area of the image
-    total_area_inside = (
-        gray_image.shape[0] * gray_image.shape[1]) - total_area_outside
+        # Check if the contour size is within the desired range
+        if min_contour_size <= total_area_inside <= max_contour_size:
+            # Draw contours on the original image (in blue)
+            cv2.drawContours(original_image, [contour], -1, (255, 0, 0), 2)
 
-    # Print the total area inside for each image
-    print(
-        f"Total Area Inside Object in {image_file}: {total_area_inside} pixels")
+            print(
+                f"Total Area Inside Object in {image_file}: {total_area_inside} pixels")
 
-    # Optional: Draw the external contours on the original image for visualization
-    external_contours = [
-        contour for contour in contours if cv2.contourArea(contour) > 0]
-    cv2.drawContours(original_image, external_contours, -1,
-                     (0, 0, 255), 2)  # Draw external contours in red
+    # Display the original image with selected contour outlines
+    cv2.imshow(f'Image with Contours ({image_file})', original_image)
 
-    # Display the original image with external contours
-    cv2.imshow(f'Image with External Contours ({image_file})', original_image)
+    # Wait for a key press (add a delay of e.g., 200 milliseconds)
     cv2.waitKey(0)
+
+    # Close the image window when any key is pressed
     cv2.destroyAllWindows()
+
+# Close all windows after processing all images
+# cv2.destroyAllWindows()
