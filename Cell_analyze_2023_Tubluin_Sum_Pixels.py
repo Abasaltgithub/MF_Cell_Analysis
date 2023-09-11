@@ -1,10 +1,13 @@
-from PIL import Image, ImageFilter
+import cv2
 import numpy as np
 import os
-from scipy import ndimage
+import csv
 
 # Define the directory path
 directory_path = '/Users/abasaltbahrami/Downloads/Cell_2023/CTR/'
+
+# Create a list to store the data
+data = []
 
 # List all files in the directory
 file_list = os.listdir(directory_path)
@@ -16,31 +19,52 @@ for file_name in file_list:
         # Construct the full image path
         image_path = os.path.join(directory_path, file_name)
 
-        # Open the image
-        img = Image.open(image_path)
+        # Open the image using OpenCV
+        original_image = cv2.imread(image_path)
 
         # Convert the image to grayscale
-        img_gray = img.convert('L')
+        img_gray = cv2.cvtColor(original_image, cv2.COLOR_BGR2GRAY)
 
         # Apply Gaussian blur to reduce noise
-        img_gray_blur = img_gray.filter(ImageFilter.GaussianBlur(radius=2))
+        img_gray_blur = cv2.GaussianBlur(img_gray, (5, 5), 0)
 
         # Convert the grayscale image to a binary image using adaptive thresholding
-        threshold = 254.5
-        img_binary = img_gray_blur.point(lambda p: p > threshold and 255)
+        _, img_binary = cv2.threshold(
+            img_gray_blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
         # Perform morphological operations to further clean up the binary image
-        img_binary = ndimage.binary_erosion(
-            img_binary, structure=np.ones((3, 3))).astype(bool)
-        img_binary = ndimage.binary_dilation(
-            img_binary, structure=np.ones((3, 3))).astype(bool)
+        kernel = np.ones((3, 3), np.uint8)
+        img_binary = cv2.erode(img_binary, kernel, iterations=1)
+        img_binary = cv2.dilate(img_binary, kernel, iterations=1)
 
         # Count the number of bright pixels (white pixels) in the binary image
         bright_pixel_count = np.sum(np.array(img_binary) > 0)
 
-        # Show the binary image (optional)
-        Image.fromarray(img_binary.astype(np.uint8) * 255).show()
+        # Append the data to the list
+        data.append([file_name, bright_pixel_count])
 
-        # Print the number of bright pixels
+        # Display the image with contours
+        cv2.imshow(f'Image with Contours ({image_path})', img_binary)
+
+        # Print the file name and bright pixel count
         print(
-            f"File: {file_name}, Number of bright pixels: {bright_pixel_count}")
+            f"File Name: {file_name}, Bright Pixel Count: {bright_pixel_count}")
+
+        # Wait for a key press (add a delay of e.g., 200 milliseconds)
+        cv2.waitKey(0)
+
+        # Close the image window when any key is pressed
+        cv2.destroyAllWindows()
+
+# Specify the CSV file path where you want to save the data
+csv_file_path = '/Users/abasaltbahrami/Downloads/Cell_2023/bright_pixel_counts.csv'
+
+# Write the data to a CSV file
+with open(csv_file_path, 'w', newline='') as csv_file:
+    csv_writer = csv.writer(csv_file)
+    # Write the header
+    csv_writer.writerow(['File Name', 'Bright Pixel Count'])
+    csv_writer.writerows(data)
+
+# Print a message to confirm that the data has been saved
+print(f"Data has been saved to {csv_file_path}")

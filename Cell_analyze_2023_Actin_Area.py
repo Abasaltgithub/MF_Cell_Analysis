@@ -1,54 +1,73 @@
-import cv2
-import os
+import numpy as np
+import matplotlib.pyplot as plt
 
-# Directory containing the images
-directory_path = '/Users/abasaltbahrami/Downloads/Cell_2023/CTR/'
+# Bright pixel counts for Tubulin in CTR and MF
+tubulin_counts_ctr = [162187, 153373, 44080, 200729, 187739, 154226]
+tubulin_counts_mf = [81124, 35965, 90579, 19633, 13763, 11703]
 
-# Get a list of all files in the directory whose names include "Actin" and end with ".tif"
-image_files = [f for f in os.listdir(
-    directory_path) if "Actin" in f and f.endswith('.tif')]
+# Total areas inside Actin objects for CTR and MF
+actin_areas_ctr = [336796.0, 412579.0, 699813.5, 640681.0, 443439.5, 286664.0]
+actin_areas_mf = [562886.0, 539848.0, 572895.0, 433665.5, 205596.0, 201333.0]
 
-# Define minimum and maximum contour sizes
-min_contour_size = 30000  # Adjust as needed
-max_contour_size = 1000000  # Adjust as needed
+# Calculate the ratios for each pair in CTR and MF
+ratios_ctr = [tubulin_count / actin_area for tubulin_count,
+              actin_area in zip(tubulin_counts_ctr, actin_areas_ctr)]
+ratios_mf = [tubulin_count / actin_area for tubulin_count,
+             actin_area in zip(tubulin_counts_mf, actin_areas_mf)]
 
-for image_file in image_files:
-    # Construct the full path to the image
-    image_path = os.path.join(directory_path, image_file)
+# Print ratios_ctr and ratios_mf
+print("CTR Ratios:")
+print(ratios_ctr)
 
-    # Load the image
-    original_image = cv2.imread(image_path)
+print("\nMF Ratios:")
+print(ratios_mf)
 
-    # Convert the image to grayscale
-    gray_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2GRAY)
+# Calculate the mean value and standard deviation for CTR and MF
+mean_ratio_ctr = np.mean(ratios_ctr)
+std_dev_ctr = np.std(ratios_ctr)
+mean_ratio_mf = np.mean(ratios_mf)
+std_dev_mf = np.std(ratios_mf)
 
-    # Apply binary thresholding to create a binary image
-    _, binary_image = cv2.threshold(gray_image, 1, 255, cv2.THRESH_BINARY)
+# Calculate the standard deviation error for CTR and MF
+std_error_ctr = std_dev_ctr / np.sqrt(len(ratios_ctr))
+std_error_mf = std_dev_mf / np.sqrt(len(ratios_mf))
 
-    # Find contours in the binary image
-    contours, _ = cv2.findContours(
-        binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+# Print the labels for CTR and MF data only once
+print("\nCTR Data:")
+print(f"Mean Ratio: {mean_ratio_ctr:.4f}")
+print(f"Standard Deviation: {std_dev_ctr:.4f}")
+print(f"Standard Deviation Error: {std_error_ctr:.4f}")
 
-    for contour in contours:
-        # Calculate the area of the contour
-        total_area_inside = cv2.contourArea(contour)
+print("\nMF Data:")
+print(f"Mean Ratio: {mean_ratio_mf:.4f}")
+print(f"Standard Deviation: {std_dev_mf:.4f}")
+print(f"Standard Deviation Error: {std_error_mf:.4f}")
 
-        # Check if the contour size is within the desired range
-        if min_contour_size <= total_area_inside <= max_contour_size:
-            # Draw contours on the original image (in blue)
-            cv2.drawContours(original_image, [contour], -1, (255, 0, 0), 2)
+# Create a barplot for CTR and MF
+plt.figure(figsize=(5, 5))
 
-            print(
-                f"Total Area Inside Object in {image_file}: {total_area_inside} pixels")
+# Create bar plots for ratios_ctr and ratios_mf with error bars
+bar_positions = (0.2, 0.3)
+bar_width = 0.05
 
-    # Display the original image with selected contour outlines
-    cv2.imshow(f'Image with Contours ({image_file})', original_image)
+# Plot bars for CTR and MF
+plt.bar(bar_positions, [mean_ratio_ctr, mean_ratio_mf], bar_width, yerr=[std_error_ctr, std_error_mf],
+        capsize=5, color=['blue', 'orange'])
 
-    # Wait for a key press (add a delay of e.g., 200 milliseconds)
-    cv2.waitKey(0)
+# Scatter plot for individual data points in CTR and MF
+for i, ratio in enumerate(ratios_ctr):
+    # Change marker to 'o' for circle
+    plt.scatter(bar_positions[0], ratio, color='black',
+                zorder=3, marker='o', label='Control' if i == 0 else '')
 
-    # Close the image window when any key is pressed
-    cv2.destroyAllWindows()
+for i, ratio in enumerate(ratios_mf):
+    # Change marker to '^' for triangle
+    plt.scatter(bar_positions[1], ratio, color='black',
+                zorder=3, marker='^', label='MF = 480$\mu$T' if i == 0 else '')
 
-# Close all windows after processing all images
-# cv2.destroyAllWindows()
+plt.legend()
+plt.ylabel("Tubulin/ Actin Area")
+plt.title(
+    "Tubulin/Actin Ratios Following a 2H Nocodazole Treatment in A7R5 Cells", size=8)
+plt.xticks(bar_positions, ["Control", "MF"])
+plt.show()
